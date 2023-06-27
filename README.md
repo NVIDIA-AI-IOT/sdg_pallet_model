@@ -2,12 +2,13 @@
 
 <img src="images/test_image_4_output.jpg" height="50%" width="50%">
 
-This repository contains code for performing inference with a preview of an 
-experimental NVIDIA pallet detection model.  The model takes as input a 
+This repository contains code for performing optimized TensorRT inference with a pre-trained
+ pallet detection model that was trained using synthetic data with NVIDIA Omniverse Replicator.  The model takes as input a 
 monocular RGB image, and outputs the pallet box estimates.  The box esimates
 are defined for each pallet side face.  So a single pallet may have multiple box
-estimates.  
+estimates. 
 
+If you have any questions, please feel free to reach out by opening an issue!
 
 ## Instructions
 
