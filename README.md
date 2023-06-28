@@ -1,4 +1,4 @@
-# Pallet Model
+# SDG Pallet Model
 
 <img src="images/test_image_1_output.jpg" height="256"/>
 
