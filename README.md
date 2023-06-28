@@ -1,6 +1,6 @@
 # Pallet Model
 
-<img src="images/test_image_4_output.jpg" height="50%" width="50%">
+<img src="images/test_image_1_output.jpg" height="256"/>
 
 This repository contains code for performing optimized TensorRT inference with a pre-trained
  pallet detection model that was trained using synthetic data with [NVIDIA Omniverse Replicator](https://developer.nvidia.com/omniverse/replicator).  
