@@ -17,7 +17,7 @@ import argparse
 import utils
 import cv2
 import torch
-
+from clustering import Clustering
 
 if __name__ == "__main__":
 
@@ -70,11 +70,26 @@ if __name__ == "__main__":
     parser.add_argument(
         '--line-thickness',
         type=int,
-        default=1,
+        default=2,
         help="The line thickness for drawn boxes"
     )
 
+    parser.add_argument(
+        '--clustering-eps',
+        type=float,
+        default=10,
+        help="The intra-cluster distance used for dbscan box clustering."
+    )
+
+    parser.add_argument(
+        '--use-clustering',
+        action="store_true"
+    )
+
     args = parser.parse_args()
+
+    if args.use_clustering:
+        clustering = Clustering(eps=args.clustering_eps)
 
     # Parse inference height, width from arguments
     inference_size = tuple(int(x) for x in args.inference_size.split('x'))
@@ -111,6 +126,8 @@ if __name__ == "__main__":
         # Execute model
         heatmap, vectormap = model(x)
 
+        heatmap = torch.sigmoid(heatmap)
+
         # Scale and offset vectormap
         keypointmap = utils.vectormap_to_keypointmap(
             offset_grid,
@@ -126,6 +143,9 @@ if __name__ == "__main__":
 
         # Extract keypoints at local peak
         keypoints = keypointmap[0][peak_mask[0, 0]]
+
+        if len(keypoints) > 0 and args.use_clustering:
+            keypoints = clustering.cluster(keypoints)
     
     # Draw
     vis_image = utils.draw_box(
