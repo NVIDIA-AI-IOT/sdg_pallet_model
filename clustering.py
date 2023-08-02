@@ -1,6 +1,5 @@
 import torch
 import numpy as np
-from permutations import UPRIGHT_PALLET_PERMUTATIONS
 from sklearn.cluster import DBSCAN
 
 import numpy as np
