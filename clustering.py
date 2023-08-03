@@ -62,7 +62,7 @@ UPRIGHT_PALLET_SIDE_FACE_INDICES_ALL = [perm[UPRIGHT_PALLET_SIDE_FACE_INDICES] f
 
 class Clustering(object):
 
-    def __init__(self, eps=10, min_samples=1, permutations=UPRIGHT_PALLET_PERMUTATIONS):
+    def __init__(self, eps=0.00125, min_samples=1, permutations=UPRIGHT_PALLET_PERMUTATIONS):
         self.clustering = DBSCAN(eps=eps, min_samples=min_samples, metric="precomputed")
         self.permutations = permutations
 
