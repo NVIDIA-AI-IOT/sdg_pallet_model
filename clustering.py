@@ -66,14 +66,26 @@ class Clustering(object):
         self.clustering = DBSCAN(eps=eps, min_samples=min_samples, metric="precomputed")
         self.permutations = permutations
 
+    @torch.no_grad()
     def compute_distance_matrix(self, kps):
         kps_a = kps[:, None, None, :, :]
         kps_b = kps[None, :, self.permutations, :]
 
+        box_means = torch.mean(kps, dim=1, keepdim=True)
+        box_sizes = torch.mean(torch.sum((kps - box_means)**2, dim=-1), dim=-1)
+
         kps_ab_dist, _ = torch.min(torch.mean(torch.sqrt(torch.sum((kps_a - kps_b)**2, dim=-1)), dim=-1), dim=-1)
-        distance_matrix = kps_ab_dist.detach().cpu().numpy()
+
+        denom = (box_sizes[:, None] + box_sizes[None, :]) / 2
+
+        distance_matrix = kps_ab_dist / denom
+
+
+        distance_matrix = distance_matrix.detach().cpu().numpy()
+
         return distance_matrix
 
+    @torch.no_grad()
     def cluster(self, kps):
         distance_matrix = self.compute_distance_matrix(kps)
         labels = self.clustering.fit_predict(distance_matrix)

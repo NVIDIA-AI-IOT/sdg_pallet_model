@@ -7,7 +7,7 @@ import cv2
 
 class Predictor:
 
-    def __init__(self, engine_path: str, inference_sizes=[256], eps=10):
+    def __init__(self, engine_path: str, inference_sizes=[256], threshold=0.8, eps=0.00125):
         self.engine = utils.load_trt_engine_wrapper(
             engine_path,
             input_names=["input"],
@@ -19,7 +19,7 @@ class Predictor:
             utils.make_offset_grid((size, size)).to("cuda")
             for size in self.inference_sizes
         ]
-        self.peak_threshold = 0.8
+        self.peak_threshold = threshold
         self.peak_window = (15, 31)
 
     @torch.no_grad()
