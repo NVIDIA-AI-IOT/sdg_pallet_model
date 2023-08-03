@@ -16,8 +16,9 @@
 import argparse
 import utils
 import cv2
+import time
 import torch
-
+from clustering import Clustering
 
 if __name__ == "__main__":
 
@@ -70,11 +71,26 @@ if __name__ == "__main__":
     parser.add_argument(
         '--line-thickness',
         type=int,
-        default=1,
+        default=2,
         help="The line thickness for drawn boxes"
     )
 
+    parser.add_argument(
+        '--clustering-eps',
+        type=float,
+        default=0.00125,
+        help="The intra-cluster distance used for dbscan box clustering."
+    )
+
+    parser.add_argument(
+        '--use-clustering',
+        action="store_true"
+    )
+
     args = parser.parse_args()
+
+    if args.use_clustering:
+        clustering = Clustering(eps=args.clustering_eps)
 
     # Parse inference height, width from arguments
     inference_size = tuple(int(x) for x in args.inference_size.split('x'))
@@ -109,23 +125,45 @@ if __name__ == "__main__":
         x = x.to("cuda")
 
         # Execute model
+        
+        t0 = time.monotonic()
         heatmap, vectormap = model(x)
+        torch.cuda.current_stream().synchronize()
+        t1 = time.monotonic()
+        print("model: ", (t1 - t0) * 1000)
+
+        heatmap = torch.sigmoid(heatmap)
 
         # Scale and offset vectormap
+        t0 = time.monotonic()
         keypointmap = utils.vectormap_to_keypointmap(
             offset_grid,
             vectormap
         )
+        torch.cuda.current_stream().synchronize()
+        t1 = time.monotonic()
+        print("vmap: ", (t1 - t0) * 1000)
 
         # Find local peaks
+        t0 = time.monotonic()
         peak_mask = utils.find_heatmap_peak_mask(
             heatmap, 
             peak_window,
             args.peak_threshold
         )
+        torch.cuda.current_stream().synchronize()
+        t1 = time.monotonic()
+        print("peak: ", (t1 - t0) * 1000)
 
         # Extract keypoints at local peak
         keypoints = keypointmap[0][peak_mask[0, 0]]
+
+        t0 = time.monotonic()
+        if len(keypoints) > 0 and args.use_clustering:
+            keypoints = clustering.cluster(keypoints)
+        torch.cuda.current_stream().synchronize()
+        t1 = time.monotonic()
+        print("clust: ", (t1 - t0) * 1000)
     
     # Draw
     vis_image = utils.draw_box(
